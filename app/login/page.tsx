@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { userStore } from '@/src/store';
 import { userLogin } from '@/src/utils/user';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z
   .object({
@@ -21,19 +22,20 @@ const loginSchema = z
 const Login = () => {
     const {
         register,
+        reset,
         handleSubmit,
         watch,
         formState: { errors },
       } = useForm<Login>({
         resolver: zodResolver(loginSchema),
       });
+      const navigate = useRouter()
       const loadingState = userStore((state:any) => state.loading)
       const setLoadingState = userStore((state:any) => state.loadingState)
       const setError = userStore((state:any) => state.errorApi)
       const setUser = userStore((state:any) => state.setUser)
       const setToken = userStore((state: any) => state.setToken)
       const user = userStore((state:any) => state.user)
-      console.log(user)
       const onSubmit: SubmitHandler<Login> = async (data) => {
         try {
             const request = {
@@ -47,6 +49,8 @@ const Login = () => {
             if(res.code === 200) {
                 setToken(res.token)
                 toast.success('Login successful', {position: 'top-right'})
+                reset()
+                navigate.push('/dashboard')
             } else {
                 toast.error(res.message, {position: 'top-right'})
             }

@@ -8,6 +8,7 @@ import clsx from 'clsx'
 import { userStore } from '@/src/store';
 import { userSignUp } from '@/src/utils/user';
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation';
 
 const signUpSchema = z
   .object({
@@ -45,6 +46,7 @@ const SignUp = () => {
         register,
         handleSubmit,
         watch,
+        reset,
         formState: { errors },
       } = useForm<SignUp>({
         resolver: zodResolver(signUpSchema),
@@ -53,6 +55,7 @@ const SignUp = () => {
       const setLoadingState = userStore((state:any) => state.loadingState)
       const setError = userStore((state:any) => state.errorApi)
       const setUser = userStore((state:any) => state.setUser)
+      const router = useRouter()
       const onSubmit: SubmitHandler<SignUp> = async (data) => {
         try {
             const request = {
@@ -70,6 +73,9 @@ const SignUp = () => {
                     token: res.token
                 })
                 toast.success(res.message, {position: "top-right"})
+                reset()
+                router.push('/login')
+
             } else {
                 toast.error(res.message, {position: "top-right"})
             }
