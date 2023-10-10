@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import RequestForm from './requestForm'
+import RequestModal from './requestModal'
 const Table = () => {
     const [openForm, setOpenForm] = useState(false)
     const handleOpenForm = () => {
@@ -8,6 +9,14 @@ const Table = () => {
     }
     const handleCloseForm = () => {
         setOpenForm(false)
+    }
+
+    const [openRequest, setOpenRequest] = useState(false)
+    const handleOpenRequest = () => {
+        setOpenRequest(true)
+    }
+    const handleCloseRequest = () => {
+        setOpenRequest(false)
     }
   return (
     <>
@@ -19,10 +28,10 @@ const Table = () => {
                 <div className="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 ">
                     <div>
                     <h2 className="text-xl font-semibold text-gray-800 ">
-                        Users
+                        Requests
                     </h2>
                     <p className="text-sm text-gray-600 ">
-                        Add users, edit and more.
+                        Send, edit and more.
                     </p>
                     </div>
         
@@ -36,7 +45,7 @@ const Table = () => {
                         <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M2.63452 7.50001L13.6345 7.5M8.13452 13V2" stroke="currentColor" strokeWidth="2" stroke-linecap="round"/>
                         </svg>
-                        Add user
+                        New request
                         </button>
                     </div>
                     </div>
@@ -55,7 +64,7 @@ const Table = () => {
                         <th scope="col" className="pl-6 lg:pl-3 xl:pl-0 pr-6 py-3 text-left">
                         <div className="flex items-center gap-x-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-800 ">
-                            Name
+                            Title
                             </span>
                         </div>
                         </th>
@@ -63,7 +72,7 @@ const Table = () => {
                         <th scope="col" className="px-6 py-3 text-left">
                         <div className="flex items-center gap-x-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-800 ">
-                            Position
+                            Sender
                             </span>
                         </div>
                         </th>
@@ -71,12 +80,12 @@ const Table = () => {
                         <th scope="col" className="px-6 py-3 text-left">
                         <div className="flex items-center gap-x-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-800 ">
-                            Status
+                            Recipient
                             </span>
                         </div>
                         </th>
         
-                        <th scope="col" className="px-6 py-3 text-left">
+                        {/* <th scope="col" className="px-6 py-3 text-left">
                         <div className="flex items-center gap-x-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-800 ">
                             Portfolio
@@ -90,7 +99,7 @@ const Table = () => {
                             Created
                             </span>
                         </div>
-                        </th>
+                        </th> */}
         
                         <th scope="col" className="px-6 py-3 text-right"></th>
                     </tr>
@@ -123,7 +132,7 @@ const Table = () => {
                             <span className="block text-sm text-gray-500">Human resources</span>
                         </div>
                         </td>
-                        <td className="h-px w-px whitespace-nowrap">
+                        {/* <td className="h-px w-px whitespace-nowrap">
                         <div className="px-6 py-3">
                             <span className="inline-flex items-center gap-1.5 py-0.5 px-2 rounded-full text-xs font-medium bg-green-100 text-green-800 ">
                             <svg className="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -143,16 +152,17 @@ const Table = () => {
                             </div>
                         </div>
                         </td>
+                        */}
                         <td className="h-px w-px whitespace-nowrap">
                         <div className="px-6 py-3">
                             <span className="text-sm text-gray-500">28 Dec, 12:12</span>
                         </div>
-                        </td>
+                        </td> 
                         <td className="h-px w-px whitespace-nowrap">
                         <div className="px-6 py-1.5">
-                            <a className="inline-flex items-center gap-x-1.5 text-sm text-blue-600 decoration-2 hover:underline font-medium" href="#">
-                            Edit
-                            </a>
+                            <button onClick={handleOpenRequest} className="inline-flex items-center gap-x-1.5 text-sm text-blue-600 decoration-2 hover:underline font-medium" >
+                            Open
+                            </button>
                         </div>
                         </td>
                     </tr>
@@ -164,6 +174,7 @@ const Table = () => {
         </div>
         </div>
         <RequestForm open={openForm} handleClose={handleCloseForm} handleOpen={handleOpenForm}/>
+        <RequestModal open={openRequest} handleClose={handleCloseRequest} handleOpen={handleOpenRequest}/>
 
     </>
   )
