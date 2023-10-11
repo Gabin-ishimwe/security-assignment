@@ -29,7 +29,7 @@ export const receiverStore = create((set) => ({
   receivers: undefined,
   loading: false,
   error: undefined,
-  fetchReceivers: (req:any) => set({receivers: req}),
+  fetchReceivers: (rec:any) => set({receivers: rec}),
   handleError: (err: any) => set({error: err}),
   loadingState: (loading: any) => set({loading})
 }))
