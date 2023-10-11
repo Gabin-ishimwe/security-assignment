@@ -39,7 +39,7 @@ const Table = () => {
       try {
         loadingState(true);
         const res = await senderRequests({ token: user.token });
-        // console.log("requests ==> ", res);
+        console.log("requests ==> ", res);
         loadingState(false);
         if (res.code === 200) fetchRequests(res.requests);
       } catch (error) {

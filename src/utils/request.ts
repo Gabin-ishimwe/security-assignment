@@ -23,7 +23,8 @@ export const sendRequest = async (req: any, token: any, receiverId: any) => {
 }
 
 export const requestDetails = async (req: any) => {
-  // console.log("tttt ", req.token);
+  console.log("tokens ======", req.token);
+  console.log("id ====",req.id)
   const res = await fetch(`http://localhost:5000/requests/${req.id}`, {
     method: "GET",
     headers: {
@@ -33,3 +34,16 @@ export const requestDetails = async (req: any) => {
   const data = await res.json();
   return data;
 };
+
+export const addComment = async (req: any) => {
+  console.log('comment request => ', req)
+  const res = await fetch(`http://localhost:5000/requests/${req.id}/comments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json", "Authorization": `Bearer ${req.token}`
+    },
+    body: JSON.stringify({comment: req.comment})
+  });
+  const data = await res.json();
+  return data;
+}

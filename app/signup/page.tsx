@@ -25,7 +25,8 @@ const signUpSchema = z
       .min(8, { message: "Password must be atleast 8 characters" }),
     confirmPassword: z
       .string()
-      .min(1, { message: "Confirm Password is required" })
+      .min(1, { message: "Confirm Password is required" }),
+      role: z.string().refine((arg:any) => ['ADMINISTRATOR', 'STUDENT', 'FACILITATOR'].includes(arg))
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
@@ -50,6 +51,13 @@ const SignUp = () => {
         formState: { errors },
       } = useForm<SignUp>({
         resolver: zodResolver(signUpSchema),
+        defaultValues: {
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          role: 'STUDENT'
+        }
       });
       const loadingState = userStore((state:any) => state.loading)
       const setLoadingState = userStore((state:any) => state.loadingState)
@@ -61,7 +69,8 @@ const SignUp = () => {
             const request = {
                 fullName: data.name,
                 email: data.email,
-                password: data.password
+                password: data.password,
+                role: data.role
             }
             setLoadingState(true)
             const res = await userSignUp(request)
@@ -182,7 +191,21 @@ const SignUp = () => {
 
                   )}
                 </div>
-                
+                <div className='flex flex-col gap-y-2'>
+                <div className="flex">
+                        <input type="radio" value={"STUDENT"} id='1' {...register("role")} className="shrink-0 mt-0.5 border-gray-200 rounded-full text-blue-600 pointer-events-none focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"/>
+                        <label htmlFor='1' className="text-sm text-gray-500 ml-2 dark:text-gray-400">Student</label>
+                      </div>
+
+                      <div className="flex">
+                        <input type="radio" id='2' value={"FACILITATOR"} {...register("role")}  className="shrink-0 mt-0.5 border-gray-200 rounded-full text-blue-600 pointer-events-none focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"/>
+                        <label htmlFor='2' className="text-sm text-gray-500 ml-2 dark:text-gray-400">Facilitator</label>
+                      </div>
+                      <div className="flex">
+                        <input type="radio" id='3' value={"ADMINISTRATOR"} {...register("role")} className="shrink-0 mt-0.5 border-gray-200 rounded-full text-blue-600 pointer-events-none focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"/>
+                        <label htmlFor='3' className="text-sm text-gray-500 ml-2 dark:text-gray-400">Administrator</label>
+                      </div>
+                </div>
                 <div className={clsx(`${!errors.password && 'hidden'}`)}>
             <p className="text-sm flex gap-y-2">
               {requirementsMet.uppercase ? (
@@ -247,7 +270,8 @@ const SignUp = () => {
               Should be at least 8 characters long
             </p>
           </div>
-                <button type="submit" disabled={loadingState} className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm">Sign up</button>
+
+                <button type="submit" disabled={loadingState} className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm">{loadingState ? 'Loading...' : 'Sign up'}</button>
               </div>
             </form>
           </div>
