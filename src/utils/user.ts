@@ -23,6 +23,7 @@ export const userLogin =async (req:any) => {
 }
 
 export const getReceivers = async (req:any) => {
+    console.log('tttt ', req.token)
     const res = await fetch('http://localhost:5000/users/receivers', {
         method: "GET",
         headers: {

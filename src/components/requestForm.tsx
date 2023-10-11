@@ -28,49 +28,36 @@ const sendRequestSchema = z.object({
   receiverId: z.string({ required_error: "Please enter the subject" }),
 });
 
-type sendRequest = z.infer<typeof sendRequestSchema>;
+type sendRequestType = z.infer<typeof sendRequestSchema>;
 
 export default function RequestForm(props: Props) {
-  const [open, setOpen] = useState(true);
+  // const [open, setOpen] = useState(props.open);
+
+  const { open, handleClose, handleOpen } = props;
 
   const cancelButtonRef = useRef(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
-  } = useForm<sendRequest>({
+  } = useForm<sendRequestType>({
     resolver: zodResolver(sendRequestSchema),
   });
 
+  const type = watch("type");
   const fetchReceivers = receiverStore((state: any) => state.fetchReceivers);
   const handleError = receiverStore((state: any) => state.handleError);
   const receiverLoadingState = receiverStore(
     (state: any) => state.loadingState
   );
-  const receivers = receiverStore((state: any) => state.requests);
+  const receivers = receiverStore((state: any) => state.receivers);
 
   const user = userStore((state: any) => state.user);
   const role = user.role;
   console.log("role ==> ", user.role);
-
-  React.useEffect(() => {
-    const getRequests = async () => {
-      try {
-        receiverLoadingState(true);
-        const res = await getReceivers({ token: user.token });
-        console.log("requests ==> ", res);
-        receiverLoadingState(false);
-        if (res.code === 200) fetchReceivers(res.receivers);
-      } catch (error) {
-        receiverLoadingState(false);
-        handleError(error);
-        return error;
-      }
-    };
-    getRequests();
-  }, [fetchReceivers, handleError, receiverLoadingState, user.token]);
 
   const loadingState = singleRequestStore((state: any) => state.loading);
   const setLoadingState = singleRequestStore(
@@ -78,31 +65,63 @@ export default function RequestForm(props: Props) {
   );
   const setError = singleRequestStore((state: any) => state.errorApi);
 
-  const onSubmit: SubmitHandler<sendRequest> = async (data) => {
+  const onSubmit: SubmitHandler<sendRequestType> = async (data) => {
     try {
       const request = {
         subject: data.subject,
         message: data.message,
         type: data.type,
-        receiverId: data.receiverId,
-        senderId: userStore((state: any) => state.id),
       };
 
+      const receiverId = data.receiverId;
       setLoadingState(true);
-      const res = await sendRequest(request);
+      console.log("receiverId", data.receiverId);
+      const res = await sendRequest(request, user.token, data.receiverId);
+      console.log("req", res);
       setLoadingState(false);
       if (res.code === 201) {
+        console.log("suc", res);
         toast.success(res.message, { position: "top-right" });
         reset();
-        setOpen(false);
+        handleClose();
+      } else {
+        toast.error(res.message, { position: "top-right" });
+        console.log("response", res);
       }
     } catch (error) {
       setLoadingState(false);
       setError(error);
-      toast.error("Sign up error", { position: "top-right" });
+      console.log(error);
+      toast.error("Something went wrong", { position: "top-right" });
       return error;
     }
   };
+
+  React.useEffect(() => {
+    const getFormReceiverss = async () => {
+      try {
+        receiverLoadingState(true);
+        const res = await getReceivers({ token: user.token });
+        console.log("receivers ==> ", res);
+        receiverLoadingState(false);
+        if (res.code === 200) {
+          fetchReceivers(
+            res.users.filter((user: any) => {
+              if (type == requestType.ACADEMIC)
+                return user.role === "FACILITATOR";
+              else return user.role === "ADMINISTRATOR";
+            })
+          );
+        }
+      } catch (error) {
+        receiverLoadingState(false);
+        handleError(error);
+        return error;
+      }
+    };
+    getFormReceiverss();
+  }, [user.token, type]);
+
   return (
     <Transition.Root show={props.open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={props.handleClose}>
@@ -193,16 +212,13 @@ export default function RequestForm(props: Props) {
                             </label>
                             <div className="relative">
                               <select
-                                {...register("subject")}
+                                {...register("type")}
                                 required
                                 className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Choose facilitator"
                                 name="type"
                                 id="type"
+                                defaultValue={requestType.ADMINISTRATIVE}
                               >
-                                <option value="" disabled selected>
-                                  Choose the type of request
-                                </option>
                                 <option value={requestType.ACADEMIC}>
                                   {requestType.ACADEMIC.toString().toLowerCase()}
                                 </option>
@@ -223,7 +239,7 @@ export default function RequestForm(props: Props) {
                               htmlFor="receiverId"
                               className="block text-sm mb-2 "
                             >
-                              Choose facilitator
+                              Choose receiver
                             </label>
                             <div className="relative">
                               <select
@@ -234,16 +250,14 @@ export default function RequestForm(props: Props) {
                                 name="receiverId"
                                 id="receiverId"
                               >
-                                <option value="" disabled selected>
-                                  Choose a facilitator
-                                </option>
-                                {receivers && receivers.map((receiver: any, key: number) => (
-                                  <option key={key} value={receiver.id}>
-                                    {receiver.fullName}
-                                  </option>
-                                ))}
-
-                                {/* <option value="2">Isaac</option> */}
+                                {receivers &&
+                                  receivers.map(
+                                    (receiver: any, key: number) => (
+                                      <option key={key} value={receiver.id}>
+                                        {receiver.fullName}
+                                      </option>
+                                    )
+                                  )}
                               </select>
                             </div>
                             {errors.receiverId && (

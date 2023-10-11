@@ -1,4 +1,4 @@
-export const senderRequests =async (req:any) => {
+export const senderRequests = async (req: any) => {
     console.log('tttt ', req.token)
     const res = await fetch('http://localhost:5000/sender/requests', {
         method: "GET",
@@ -10,11 +10,11 @@ export const senderRequests =async (req:any) => {
     return data
 }
 
-export const sendRequest =async (req:any) => {
-    const res = await fetch('http://localhost:5000/requests/send/:receiverId', {
+export const sendRequest = async (req: any, token: any, receiverId: any) => {
+    const res = await fetch(`http://localhost:5000/requests/send/${receiverId}`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json", "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(req)
     })
