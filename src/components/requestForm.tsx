@@ -1,18 +1,108 @@
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-
+import { singleRequestStore } from "../store/request";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { sendRequest } from "../utils/request";
+import { z } from "zod";
+import { receiverStore, userStore } from "../store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import React from "react";
+import { getReceivers } from "../utils/user";
 type Props = {
   open: boolean;
   handleOpen: () => void;
   handleClose: () => void;
 };
 
+enum requestType {
+  ADMINISTRATIVE = "ADMINISTRATIVE",
+  ACADEMIC = "ACADEMIC",
+}
+
+const sendRequestSchema = z.object({
+  subject: z.string({ required_error: "Please enter the subject" }),
+  message: z.string({ required_error: "Please enter the message" }),
+  type: z.nativeEnum(requestType),
+  receiverId: z.string({ required_error: "Please enter the subject" }),
+});
+
+type sendRequest = z.infer<typeof sendRequestSchema>;
+
 export default function RequestForm(props: Props) {
   const [open, setOpen] = useState(true);
 
   const cancelButtonRef = useRef(null);
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<sendRequest>({
+    resolver: zodResolver(sendRequestSchema),
+  });
+
+  const fetchReceivers = receiverStore((state: any) => state.fetchReceivers);
+  const handleError = receiverStore((state: any) => state.handleError);
+  const receiverLoadingState = receiverStore(
+    (state: any) => state.loadingState
+  );
+  const receivers = receiverStore((state: any) => state.requests);
+
+  const user = userStore((state: any) => state.user);
+  const role = user.role;
+  console.log("role ==> ", user.role);
+
+  React.useEffect(() => {
+    const getRequests = async () => {
+      try {
+        receiverLoadingState(true);
+        const res = await getReceivers({ token: user.token });
+        console.log("requests ==> ", res);
+        receiverLoadingState(false);
+        if (res.code === 200) fetchReceivers(res.receivers);
+      } catch (error) {
+        receiverLoadingState(false);
+        handleError(error);
+        return error;
+      }
+    };
+    getRequests();
+  }, [fetchReceivers, handleError, receiverLoadingState, user.token]);
+
+  const loadingState = singleRequestStore((state: any) => state.loading);
+  const setLoadingState = singleRequestStore(
+    (state: any) => state.loadingState
+  );
+  const setError = singleRequestStore((state: any) => state.errorApi);
+
+  const onSubmit: SubmitHandler<sendRequest> = async (data) => {
+    try {
+      const request = {
+        subject: data.subject,
+        message: data.message,
+        type: data.type,
+        receiverId: data.receiverId,
+        senderId: userStore((state: any) => state.id),
+      };
+
+      setLoadingState(true);
+      const res = await sendRequest(request);
+      setLoadingState(false);
+      if (res.code === 201) {
+        toast.success(res.message, { position: "top-right" });
+        reset();
+        setOpen(false);
+      }
+    } catch (error) {
+      setLoadingState(false);
+      setError(error);
+      toast.error("Sign up error", { position: "top-right" });
+      return error;
+    }
+  };
   return (
     <Transition.Root show={props.open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={props.handleClose}>
@@ -67,78 +157,100 @@ export default function RequestForm(props: Props) {
 
                       {/* <div className="py-3 flex items-center text-xs text-gray-400 uppercase before:flex-[1_1_0%] before:border-t before:border-gray-200 before:mr-6 after:flex-[1_1_0%] after:border-t after:border-gray-200 after:ml-6 dark:text-gray-500 dark:before:border-gray-600 dark:after:border-gray-600">Or</div> */}
 
-                      <form>
+                      <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="grid gap-y-4">
                           <div>
                             <label
-                              htmlFor="title"
+                              htmlFor="subject"
                               className="block text-sm mb-2 "
                             >
-                              Title
+                              Subject
                             </label>
                             <div className="relative">
                               <input
+                                {...register("subject")}
                                 type="text"
-                                id="title"
-                                name="title"
+                                id="subject"
+                                name="subject"
                                 className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500   "
                                 required
-                                aria-describedby="title-error"
+                                aria-describedby="subject-error"
                               />
-                              <div className="hidden absolute inset-y-0 right-0 flex items-center pointer-events-none pr-3">
-                                <svg
-                                  className="h-5 w-5 text-red-500"
-                                  width="16"
-                                  height="16"
-                                  fill="currentColor"
-                                  viewBox="0 0 16 16"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                </svg>
-                              </div>
                             </div>
-                            <p
-                              className="hidden text-xs text-red-600 mt-2"
-                              id="title-error"
-                            >
-                              Please include a valid title address so we can get
-                              back to you
-                            </p>
+                            {errors.subject && (
+                              <p className="text-xs text-red-600 mt-2">
+                                {errors.subject.message}
+                              </p>
+                            )}
                           </div>
 
                           <div>
                             <label
-                              htmlFor="facilitator"
+                              htmlFor="receiverId"
+                              className="block text-sm mb-2 "
+                            >
+                              Type of request
+                            </label>
+                            <div className="relative">
+                              <select
+                                {...register("subject")}
+                                required
+                                className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
+                                placeholder="Choose facilitator"
+                                name="type"
+                                id="type"
+                              >
+                                <option value="" disabled selected>
+                                  Choose the type of request
+                                </option>
+                                <option value={requestType.ACADEMIC}>
+                                  {requestType.ACADEMIC.toString().toLowerCase()}
+                                </option>
+                                <option value={requestType.ADMINISTRATIVE}>
+                                  {requestType.ADMINISTRATIVE.toString().toLowerCase()}
+                                </option>
+                              </select>
+                            </div>
+                            {errors.type && (
+                              <p className="text-xs text-red-600 mt-2">
+                                {errors.type.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="receiverId"
                               className="block text-sm mb-2 "
                             >
                               Choose facilitator
                             </label>
                             <div className="relative">
-                              <select required className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Choose facilitator">
-                              <option value="" disabled selected>Choose a facilitator</option>
-                              <option value="1">Simeon</option>
-                                <option value="2">Isaac</option>
+                              <select
+                                {...register("receiverId")}
+                                required
+                                className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
+                                placeholder="Choose facilitator"
+                                name="receiverId"
+                                id="receiverId"
+                              >
+                                <option value="" disabled selected>
+                                  Choose a facilitator
+                                </option>
+                                {receivers && receivers.map((receiver: any, key: number) => (
+                                  <option key={key} value={receiver.id}>
+                                    {receiver.fullName}
+                                  </option>
+                                ))}
+
+                                {/* <option value="2">Isaac</option> */}
                               </select>
-                              <div className="hidden absolute inset-y-0 right-0 flex items-center pointer-events-none pr-3">
-                                <svg
-                                  className="h-5 w-5 text-red-500"
-                                  width="16"
-                                  height="16"
-                                  fill="currentColor"
-                                  viewBox="0 0 16 16"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                </svg>
-                              </div>
                             </div>
-                            <p
-                              className="hidden text-xs text-red-600 mt-2"
-                              id="title-error"
-                            >
-                              Please choose a valid facilitator
-                            </p>
+                            {errors.receiverId && (
+                              <p className="text-xs text-red-600 mt-2">
+                                {errors.receiverId.message}
+                              </p>
+                            )}
                           </div>
 
                           <div>
@@ -146,139 +258,30 @@ export default function RequestForm(props: Props) {
                               htmlFor="content"
                               className="block text-sm mb-2 "
                             >
-                              Request content
+                              Message
                             </label>
                             <div className="relative">
                               <textarea
-                                name="content"
-                                id="content"
+                                {...register("message")}
+                                name="message"
+                                id="message"
                                 // cols={30}
                                 rows={5}
                                 className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
                                 required
-                                aria-describedby="content-error"
+                                aria-describedby="message-error"
                               ></textarea>
-
-                              <div className="hidden absolute inset-y-0 right-0 flex items-center pointer-events-none pr-3">
-                                <svg
-                                  className="h-5 w-5 text-red-500"
-                                  width="16"
-                                  height="16"
-                                  fill="currentColor"
-                                  viewBox="0 0 16 16"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                </svg>
-                              </div>
                             </div>
-                            <p
-                              className="hidden text-xs text-red-600 mt-2"
-                              id="content-error"
-                            >
-                              Please include a valid title address so we can get
-                              back to you
-                            </p>
+                            {errors.message && (
+                              <p className="text-xs text-red-600 mt-2">
+                                {errors.message.message}
+                              </p>
+                            )}
                           </div>
-
-                          {/* <div>
-                            <label
-                              htmlFor="password"
-                              className="block text-sm mb-2 "
-                            >
-                              Password
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500   "
-                                required
-                                aria-describedby="password-error"
-                              />
-                              <div className="hidden absolute inset-y-0 right-0 flex items-center pointer-events-none pr-3">
-                                <svg
-                                  className="h-5 w-5 text-red-500"
-                                  width="16"
-                                  height="16"
-                                  fill="currentColor"
-                                  viewBox="0 0 16 16"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                </svg>
-                              </div>
-                            </div>
-                            <p
-                              className="hidden text-xs text-red-600 mt-2"
-                              id="password-error"
-                            >
-                              8+ characters required
-                            </p>
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="confirm-password"
-                              className="block text-sm mb-2 "
-                            >
-                              Confirm Password
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="password"
-                                id="confirm-password"
-                                name="confirm-password"
-                                className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500   "
-                                required
-                                aria-describedby="confirm-password-error"
-                              />
-                              <div className="hidden absolute inset-y-0 right-0 flex items-center pointer-events-none pr-3">
-                                <svg
-                                  className="h-5 w-5 text-red-500"
-                                  width="16"
-                                  height="16"
-                                  fill="currentColor"
-                                  viewBox="0 0 16 16"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                </svg>
-                              </div>
-                            </div>
-                            <p
-                              className="hidden text-xs text-red-600 mt-2"
-                              id="confirm-password-error"
-                            >
-                              Password does not match the password
-                            </p>
-                          </div> */}
-
-                          {/* <div className="flex items-center">
-                            <div className="flex">
-                              <input
-                                id="remember-me"
-                                name="remember-me"
-                                type="checkbox"
-                                className="shrink-0 mt-0.5 border-gray-200 rounded text-blue-600 pointer-events-none focus:ring-blue-500    dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"
-                              />
-                            </div>
-                            <div className="ml-3">
-                              <label htmlFor="remember-me" className="text-sm ">
-                                I accept the{" "}
-                                <a
-                                  className="text-blue-600 decoration-2 hover:underline font-medium"
-                                  href="#"
-                                >
-                                  Terms and Conditions
-                                </a>
-                              </label>
-                            </div>
-                          </div> */}
 
                           <button
                             type="submit"
+                            disabled={loadingState}
                             className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800"
                           >
                             Submit request
