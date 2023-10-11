@@ -1,63 +1,61 @@
-
-'use client'
-import { Fragment, useState, useEffect } from 'react'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import Table from '@/src/components/table'
-import Link from 'next/link'
-import RequestForm from '@/src/components/requestForm'
-import HOComponent from '@/src/components/hoc'
-import { decodeToken } from '@/src/utils/token'
-import { userStore } from '@/src/store'
+"use client";
+import { Fragment, useState, useEffect } from "react";
+import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import Table from "@/src/components/table";
+import Link from "next/link";
+import RequestForm from "@/src/components/requestForm";
+import HOComponent from "@/src/components/hoc";
+import { decodeToken } from "@/src/utils/token";
+import { userStore } from "@/src/store";
+import Image from "next/image";
 
 const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
+  name: "Tom Cook",
+  email: "tom@example.com",
   imageUrl:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-}
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+};
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', current: true },
-//   { name: 'Team', href: '#', current: false },
-//   { name: 'Projects', href: '#', current: false },
-//   { name: 'Calendar', href: '#', current: false },
-//   { name: 'Reports', href: '#', current: false },
-]
+  { name: "Dashboard", href: "/dashboard", current: true },
+  //   { name: 'Team', href: '#', current: false },
+  //   { name: 'Projects', href: '#', current: false },
+  //   { name: 'Calendar', href: '#', current: false },
+  //   { name: 'Reports', href: '#', current: false },
+];
 const userNavigation = [
-  { name: 'Sign out', href: '#' },
-]
+  {
+    name: "Sign out",
+    href: "/",
+    onClick: () => {
+      localStorage.removeItem("AUTH_TOKEN");
+    },
+  },
+];
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
-const Dashboard = (props: any)=> {
-    const setUser = userStore((state:any) => state.setUser)
-    const user = userStore((state:any) => state.user)
-    // console.log("user ==> ", user)
-    useEffect(() => {
-        const decode = decodeToken(props.token)
-        // console.log(decode)
-        setUser({
-            email: decode.email,
-            name: decode.fullName,
-            role: decode.role,
-            token: props.token,
-            id: decode.id
-        })
-    }, [])
+const Dashboard = (props: any) => {
+  const setUser = userStore((state: any) => state.setUser);
+  const user = userStore((state: any) => state.user);
+  console.log("user ==> ", user);
+  useEffect(() => {
+    const decode = decodeToken(props.token);
+    // console.log(decode)
+    setUser({
+      email: decode.email,
+      name: decode.fullName,
+      role: decode.role,
+      token: props.token,
+      id: decode.id,
+    });
+  }, []);
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
       <div className="min-h-full">
-        <Disclosure as="nav" className="bg-gray-800">
+        <Disclosure as="nav" className="bg-white-800 shadow">
           {({ open }) => (
             <>
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -66,7 +64,7 @@ const Dashboard = (props: any)=> {
                     <div className="flex-shrink-0">
                       <img
                         className="h-8 w-8"
-                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                        src="https://www.pinclipart.com/picdir/big/333-3337407_service-request-special-request-icon-clipart.png"
                         alt="Your Company"
                       />
                     </div>
@@ -78,11 +76,11 @@ const Dashboard = (props: any)=> {
                             href={item.href}
                             className={classNames(
                               item.current
-                                ? 'bg-gray-900 text-white'
-                                : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                              'rounded-md px-3 py-2 text-sm font-medium'
+                                ? "bg-gray-900 text-white"
+                                : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                              "rounded-md px-3 py-2 text-sm font-medium"
                             )}
-                            aria-current={item.current ? 'page' : undefined}
+                            aria-current={item.current ? "page" : undefined}
                           >
                             {item.name}
                           </Link>
@@ -92,22 +90,16 @@ const Dashboard = (props: any)=> {
                   </div>
                   <div className="hidden md:block">
                     <div className="ml-4 flex items-center md:ml-6">
-                      {/* <button
-                        type="button"
-                        className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                      >
-                        <span className="absolute -inset-1.5" />
-                        <span className="sr-only">View notifications</span>
-                        <BellIcon className="h-6 w-6" aria-hidden="true" />
-                      </button> */}
-
-                      {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
-                          <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                          <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-white-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                             <span className="absolute -inset-1.5" />
                             <span className="sr-only">Open user menu</span>
-                            <img className="h-8 w-8 rounded-full" src={user.imageUrl} alt="" />
+                            <img
+                              className="h-8 w-8 rounded-full"
+                              src="https://th.bing.com/th/id/R.8e2c571ff125b3531705198a15d3103c?rik=gzhbzBpXBa%2bxMA&riu=http%3a%2f%2fpluspng.com%2fimg-png%2fuser-png-icon-big-image-png-2240.png&ehk=VeWsrun%2fvDy5QDv2Z6Xm8XnIMXyeaz2fhR3AgxlvxAc%3d&risl=&pid=ImgRaw&r=0"
+                              alt=""
+                            />
                           </Menu.Button>
                         </div>
                         <Transition
@@ -125,9 +117,10 @@ const Dashboard = (props: any)=> {
                                 {({ active }) => (
                                   <a
                                     href={item.href}
+                                    onClick={item.onClick}
                                     className={classNames(
-                                      active ? 'bg-gray-100' : '',
-                                      'block px-4 py-2 text-sm text-gray-700'
+                                      active ? "bg-gray-100" : "",
+                                      "block px-4 py-2 text-sm text-gray-700"
                                     )}
                                   >
                                     {item.name}
@@ -146,9 +139,15 @@ const Dashboard = (props: any)=> {
                       <span className="absolute -inset-0.5" />
                       <span className="sr-only">Open main menu</span>
                       {open ? (
-                        <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                        <XMarkIcon
+                          className="block h-6 w-6"
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                        <Bars3Icon
+                          className="block h-6 w-6"
+                          aria-hidden="true"
+                        />
                       )}
                     </Disclosure.Button>
                   </div>
@@ -163,10 +162,12 @@ const Dashboard = (props: any)=> {
                       as="a"
                       href={item.href}
                       className={classNames(
-                        item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                        'block rounded-md px-3 py-2 text-base font-medium'
+                        item.current
+                          ? "bg-gray-900 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                        "block rounded-md px-3 py-2 text-base font-medium"
                       )}
-                      aria-current={item.current ? 'page' : undefined}
+                      aria-current={item.current ? "page" : undefined}
                     >
                       {item.name}
                     </Disclosure.Button>
@@ -175,11 +176,19 @@ const Dashboard = (props: any)=> {
                 <div className="border-t border-gray-700 pb-3 pt-4">
                   <div className="flex items-center px-5">
                     <div className="flex-shrink-0">
-                      <img className="h-10 w-10 rounded-full" src={user.imageUrl} alt="" />
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={user.imageUrl}
+                        alt=""
+                      />
                     </div>
                     <div className="ml-3">
-                      <div className="text-base font-medium leading-none text-white">{user.name}</div>
-                      <div className="text-sm font-medium leading-none text-gray-400">{user.email}</div>
+                      <div className="text-base font-medium leading-none text-white">
+                        {user.name}
+                      </div>
+                      <div className="text-sm font-medium leading-none text-gray-400">
+                        {user.email}
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -208,17 +217,32 @@ const Dashboard = (props: any)=> {
           )}
         </Disclosure>
 
-        <header className="bg-white shadow">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-          </div>
-        </header>
         <main>
-          <Table/>
+          <div className="mt-3">
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+              <h1 className="text-xl font-bold tracking-tight text-gray-900 pb-3">
+                User Details
+              </h1>
+              {user && (
+                <div className="ml-5 space-y-2">
+                  <p className=" capitalize">
+                    <span className="font-bold ">Name:</span> {user.name}
+                  </p>
+                  <p className="">
+                    <span className="font-bold ">Email:</span> {user.email}
+                  </p>
+                  <p className="capitalize">
+                    <span className="font-bold ">Role:</span> {user.role}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <Table />
         </main>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default HOComponent(Dashboard)
+export default HOComponent(Dashboard);
