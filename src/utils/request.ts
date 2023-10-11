@@ -23,13 +23,13 @@ export const sendRequest = async (req: any, token: any, receiverId: any) => {
 }
 
 export const requestDetails = async (req: any) => {
-  // console.log("tttt ", req.token);
+  
   const res = await fetch(`http://localhost:5000/requests/${req.id}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${req.token}`,
     },
   });
-  const data = await res.json();
+  const data = await res.json(); 
   return data;
 };
