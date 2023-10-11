@@ -5,7 +5,7 @@ import { singleRequestStore } from "../store/request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { sendRequest } from "../utils/request";
 import { z } from "zod";
-import { receiverStore, userStore } from "../store";
+import { receiverStore, userStore, requestStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import React from "react";
@@ -64,6 +64,7 @@ export default function RequestForm(props: Props) {
     (state: any) => state.loadingState
   );
   const setError = singleRequestStore((state: any) => state.errorApi);
+  const addRequest = requestStore((state:any) => state.addRequest)
 
   const onSubmit: SubmitHandler<sendRequestType> = async (data) => {
     try {
@@ -81,6 +82,8 @@ export default function RequestForm(props: Props) {
       setLoadingState(false);
       if (res.code === 201) {
         console.log("suc", res);
+        // dispatch action
+        // addRequest(res.sentRequest)
         toast.success(res.message, { position: "top-right" });
         reset();
         handleClose();
@@ -298,7 +301,7 @@ export default function RequestForm(props: Props) {
                             disabled={loadingState}
                             className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800"
                           >
-                            Submit request
+                            {loadingState ? 'Loading...' : 'Submit request'}
                           </button>
                         </div>
                       </form>

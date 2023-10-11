@@ -6,7 +6,13 @@ export const requestStore = create((set) => ({
     error: undefined,
     fetchRequests: (req:any) => set({requests: req}),
     handleError: (err: any) => set({error: err}),
-    loadingState: (loading: any) => set({loading})
+    loadingState: (loading: any) => set({loading}),
+    addRequest: (req: any) => set((state: any) => ({
+        requests: [
+            req,
+            ...state.requests
+        ]
+    }))
 }))
 const singleRequest = {
     id: undefined,
