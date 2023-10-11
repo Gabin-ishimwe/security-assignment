@@ -2,9 +2,10 @@ import React, { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { requestDetailsStore } from "../store/requestDetails";
-import { userStore } from "../store";
-import { requestDetails } from "../utils/request";
-import Spinner from "react-spinner-material";
+import { requestStore, userStore } from "../store";
+import { addComment, requestDetails } from "../utils/request";
+import Spinner from 'react-spinner-material';
+import { toast } from "react-hot-toast";
 import formatDate from "../utils/date";
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function RequestModal(props: Props) {
+  const [value, setValue] = React.useState("")
   const [open, setOpen] = useState(true);
   console.log("id ==>", props.id);
   const cancelButtonRef = useRef(null);
@@ -27,24 +29,47 @@ export default function RequestModal(props: Props) {
   const loadingState = requestDetailsStore((state: any) => state.loadingState);
   const requestdet = requestDetailsStore((state: any) => state.requestDetails);
   const isLoading = requestDetailsStore((state: any) => state.loading);
-
-  React.useEffect(() => {
-    const getRequestDetails = async () => {
-      try {
-        loadingState(true);
-        const res = await requestDetails({ token: user.token, id: props.id });
-        console.log("requestsooo ==> ", res);
-        loadingState(false);
-        if (res.code === 200) fetchRequest(res.request);
-      } catch (error) {
-        loadingState(false);
-        handleError(error);
-        return error;
+  const update = requestStore((state:any) => state.updateRequest)
+  const getRequests = async () => {
+    try {
+      loadingState(true);
+      const res = await requestDetails({ token: user.token, id: props.id });
+      console.log("requestsooo ==> ", res);
+      loadingState(false);
+      if (res.code === 200) {
+        fetchRequest(res.request)
+        update(res.request)
+      };
+    } catch (error) {
+      loadingState(false);
+      handleError(error);
+      return error;
+    }
+  };
+  const submitComment = async () => {
+    try {
+      console.log(value)
+      const res = await addComment({token: user.token, id: props.id, comment: value})
+      console.log('comment => ', res)
+      if(res.code === 201) {
+        toast.success(res.message, { position: "top-right" });
+      } else {
+        toast.error(res.message, { position: "top-right" });
       }
-    };
-    getRequestDetails();
-    console.log("requestoo=> ", isLoading, requestdet);
-  }, [props.id, props.open]);
+    } catch (error:any) {
+      console.log(error)
+      toast.error(error.message, { position: "top-right"} )
+      return error
+    }
+  }
+
+  useEffect(() => {
+  if(props.open) {
+    console.log("here ======")
+    getRequests()
+  }
+  }, [props.open]);
+
   return (
     <Transition.Root show={props.open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={props.handleClose}>
@@ -143,6 +168,8 @@ export default function RequestModal(props: Props) {
                                       name="content"
                                       id="content"
                                       // cols={30}
+                                      value={value}
+                                      onChange={(e) => setValue(e.target.value)}
                                       rows={2}
                                       className="py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
                                       required
@@ -150,7 +177,8 @@ export default function RequestModal(props: Props) {
                                     ></textarea>
 
                                     <button
-                                      type="submit"
+                                      type="button"
+                                      onClick={submitComment}
                                       className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800"
                                     >
                                       Send

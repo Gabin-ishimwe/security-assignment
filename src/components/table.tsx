@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import RequestForm from "./requestForm";
 import RequestModal from "./requestModal";
 import { userStore } from "../store";
-import { requestStore } from "../store/request";
 import { fetchAllRequests } from "../utils/request";
+import { requestStore, singleRequestStore } from "../store/request";
 import formatDate from "../utils/date";
 import Spinner from "react-spinner-material";
 
@@ -19,6 +19,7 @@ const Table = () => {
   const loadingState = requestStore((state: any) => state.loadingState);
   const requests = requestStore((state: any) => state.requests);
   const isLoading = requestStore((state: any) => state.loading);
+  const newRequest = singleRequestStore((state:any) => state.singleRequest)
   // console.log("all requests ", requests);
   const handleOpenForm = () => {
     setOpenForm(true);
@@ -40,6 +41,8 @@ const Table = () => {
         loadingState(true);
         const res = await fetchAllRequests({ token: user.token });
         // console.log("requests ==> ", res);
+        // const res = await senderRequests({ token: user.token });
+        console.log("requests ==> ", res);
         loadingState(false);
         if (res.code === 200) fetchRequests(res.requests);
       } catch (error) {

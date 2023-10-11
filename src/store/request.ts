@@ -12,7 +12,17 @@ export const requestStore = create((set) => ({
             req,
             ...state.requests
         ]
-    }))
+    })),
+    updateRequest: (req:any) => set((state:any) => {
+        const newRequest = state.requests.map((r:any) => {
+            if(r.id === req.id) return {...r, ...req}
+            return r
+        })
+        console.log("new requests ==> ", newRequest)
+        return {
+            requests: newRequest
+        }
+    })
 }))
 const singleRequest = {
     id: undefined,
