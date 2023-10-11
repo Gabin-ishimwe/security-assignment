@@ -21,3 +21,14 @@ export const userLogin =async (req:any) => {
     const data = await res.json()
     return data
 }
+
+export const getReceivers = async (req:any) => {
+    const res = await fetch('http://localhost:5000/users/receivers', {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${req.token}`
+        },
+    })
+    const data = await res.json()
+    return data
+}

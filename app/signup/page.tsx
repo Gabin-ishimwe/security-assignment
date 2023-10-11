@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import React from 'react'
-import { z } from "Zod";
+import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from 'clsx'
@@ -77,11 +77,13 @@ const SignUp = () => {
                 router.push('/login')
 
             } else {
+              console.log(res.message)
                 toast.error(res.message, {position: "top-right"})
             }
          
             return res
         } catch (error) {
+          console.log(error)
             setLoadingState(false)
             setError(error)
             toast.error("Sign up error", {position: 'top-right'})
