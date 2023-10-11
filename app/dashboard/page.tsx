@@ -34,10 +34,10 @@ function classNames(...classes: string[]) {
 const Dashboard = (props: any)=> {
     const setUser = userStore((state:any) => state.setUser)
     const user = userStore((state:any) => state.user)
-    console.log("user ==> ", user)
+    // console.log("user ==> ", user)
     useEffect(() => {
         const decode = decodeToken(props.token)
-        console.log(decode)
+        // console.log(decode)
         setUser({
             email: decode.email,
             name: decode.fullName,
