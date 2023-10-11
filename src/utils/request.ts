@@ -1,6 +1,6 @@
-export const senderRequests = async (req: any) => {
+export const fetchAllRequests = async (req: any) => {
     console.log('tttt ', req.token)
-    const res = await fetch('http://localhost:5000/sender/requests', {
+    const res = await fetch('http://localhost:5000/requests', {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${req.token}`

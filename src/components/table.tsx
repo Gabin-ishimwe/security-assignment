@@ -4,7 +4,7 @@ import RequestForm from "./requestForm";
 import RequestModal from "./requestModal";
 import { userStore } from "../store";
 import { requestStore } from "../store/request";
-import { senderRequests } from "../utils/request";
+import { fetchAllRequests } from "../utils/request";
 import formatDate from "../utils/date";
 import Spinner from "react-spinner-material";
 
@@ -38,7 +38,7 @@ const Table = () => {
     const getRequests = async () => {
       try {
         loadingState(true);
-        const res = await senderRequests({ token: user.token });
+        const res = await fetchAllRequests({ token: user.token });
         // console.log("requests ==> ", res);
         loadingState(false);
         if (res.code === 200) fetchRequests(res.requests);
