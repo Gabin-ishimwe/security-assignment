@@ -1,11 +1,14 @@
 
 'use client'
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import Table from '@/src/components/table'
 import Link from 'next/link'
 import RequestForm from '@/src/components/requestForm'
+import HOComponent from '@/src/components/hoc'
+import { decodeToken } from '@/src/utils/token'
+import { userStore } from '@/src/store'
 
 const user = {
   name: 'Tom Cook',
@@ -28,8 +31,21 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Dashboard() {
-    
+const Dashboard = (props: any)=> {
+    const setUser = userStore((state:any) => state.setUser)
+    const user = userStore((state:any) => state.user)
+    console.log("user ==> ", user)
+    useEffect(() => {
+        const decode = decodeToken(props.token)
+        console.log(decode)
+        setUser({
+            email: decode.email,
+            name: decode.fullName,
+            role: decode.role,
+            token: props.token,
+            id: decode.id
+        })
+    }, [])
   return (
     <>
       {/*
@@ -204,3 +220,5 @@ export default function Dashboard() {
     </>
   )
 }
+
+export default HOComponent(Dashboard)

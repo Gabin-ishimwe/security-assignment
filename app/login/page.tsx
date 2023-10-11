@@ -34,8 +34,9 @@ const Login = () => {
       const setLoadingState = userStore((state:any) => state.loadingState)
       const setError = userStore((state:any) => state.errorApi)
       const setUser = userStore((state:any) => state.setUser)
-      const setToken = userStore((state: any) => state.setToken)
+    //   const setToken = userStore((state: any) => state.setToken)
       const user = userStore((state:any) => state.user)
+      console.log(user)
       const onSubmit: SubmitHandler<Login> = async (data) => {
         try {
             const request = {
@@ -47,9 +48,11 @@ const Login = () => {
             setLoadingState(false)
             console.log(res)
             if(res.code === 200) {
-                setToken(res.token)
+                setUser({token: res.token})
+                console.log("new token ", user)
                 toast.success('Login successful', {position: 'top-right'})
                 reset()
+                localStorage.setItem('AUTH_TOKEN', res.token)
                 navigate.push('/dashboard')
             } else {
                 toast.error(res.message, {position: 'top-right'})
